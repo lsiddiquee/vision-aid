@@ -1,8 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFrameworks>net8.0-android;net8.0-ios;net8.0-maccatalyst</TargetFrameworks>
-		<TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net8.0-windows10.0.19041.0</TargetFrameworks>
+		<TargetFrameworks>net8.0-android;net8.0-ios</TargetFrameworks>
 		<!-- Uncomment to also build the tizen app. You will need to install tizen by following this: https://github.com/Samsung/Tizen.NET -->
 		<!-- <TargetFrameworks>$(TargetFrameworks);net8.0-tizen</TargetFrameworks> -->
 
@@ -38,9 +37,57 @@
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'tizen'">6.5</SupportedOSPlatformVersion>
 	</PropertyGroup>
 
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net8.0-android|AnyCPU'">
+	  <ApplicationId>com.lsiddiquee.visionaid.mobileapp</ApplicationId>
+	  <ApplicationIdGuid>B4631AF4-1B70-4F7C-9C35-92893D644EF1</ApplicationIdGuid>
+	  <ApplicationTitle>VisionAid</ApplicationTitle>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net8.0-ios|AnyCPU'">
+	  <ApplicationId>com.lsiddiquee.visionaid.mobileapp</ApplicationId>
+	  <ApplicationIdGuid>B4631AF4-1B70-4F7C-9C35-92893D644EF1</ApplicationIdGuid>
+	  <ApplicationTitle>VisionAid</ApplicationTitle>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net8.0-maccatalyst|AnyCPU'">
+	  <ApplicationId>com.lsiddiquee.visionaid.mobileapp</ApplicationId>
+	  <ApplicationIdGuid>B4631AF4-1B70-4F7C-9C35-92893D644EF1</ApplicationIdGuid>
+	  <ApplicationTitle>VisionAid</ApplicationTitle>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net8.0-windows10.0.19041.0|AnyCPU'">
+	  <ApplicationId>com.lsiddiquee.visionaid.mobileapp</ApplicationId>
+	  <ApplicationIdGuid>B4631AF4-1B70-4F7C-9C35-92893D644EF1</ApplicationIdGuid>
+	  <ApplicationTitle>VisionAid</ApplicationTitle>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net8.0-android|AnyCPU'">
+	  <ApplicationId>com.lsiddiquee.visionaid.mobileapp</ApplicationId>
+	  <ApplicationIdGuid>B4631AF4-1B70-4F7C-9C35-92893D644EF1</ApplicationIdGuid>
+	  <ApplicationTitle>VisionAid</ApplicationTitle>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net8.0-ios|AnyCPU'">
+	  <ApplicationId>com.lsiddiquee.visionaid.mobileapp</ApplicationId>
+	  <ApplicationIdGuid>B4631AF4-1B70-4F7C-9C35-92893D644EF1</ApplicationIdGuid>
+	  <ApplicationTitle>VisionAid</ApplicationTitle>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net8.0-maccatalyst|AnyCPU'">
+	  <ApplicationId>com.lsiddiquee.visionaid.mobileapp</ApplicationId>
+	  <ApplicationIdGuid>B4631AF4-1B70-4F7C-9C35-92893D644EF1</ApplicationIdGuid>
+	  <ApplicationTitle>VisionAid</ApplicationTitle>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net8.0-windows10.0.19041.0|AnyCPU'">
+	  <ApplicationId>com.lsiddiquee.visionaid.mobileapp</ApplicationId>
+	  <ApplicationIdGuid>B4631AF4-1B70-4F7C-9C35-92893D644EF1</ApplicationIdGuid>
+	  <ApplicationTitle>VisionAid</ApplicationTitle>
+	</PropertyGroup>
+
 	<ItemGroup>
 		<!-- App Icon -->
-		<MauiIcon Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\appiconfg.svg" Color="#512BD4" />
+		<MauiIcon Include="Resources\AppIcon\appicon.svg" Color="#512BD4" />
 
 		<!-- Splash Screen -->
 		<MauiSplashScreen Include="Resources\Splash\splash.svg" Color="#512BD4" BaseSize="128,128" />
@@ -59,6 +106,9 @@
 	<ItemGroup>
 		<PackageReference Include="CommunityToolkit.Maui" Version="9.0.3" />
 		<PackageReference Include="CommunityToolkit.Maui.Camera" Version="1.0.5" />
+		<PackageReference Include="Microsoft.Identity.Client" Version="4.64.1" />
+		<PackageReference Include="Microsoft.Identity.Client.Extensions.Msal" Version="4.64.1" />
+		<PackageReference Include="Microsoft.Kiota.Abstractions" Version="1.12.4" />
 		<PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
 		<PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="$(MauiVersion)" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="8.0.0" />

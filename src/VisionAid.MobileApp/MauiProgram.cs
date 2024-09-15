@@ -1,6 +1,7 @@
 ﻿using CommunityToolkit.Maui;
 using CommunityToolkit.Maui.Camera;
 using Microsoft.Extensions.Logging;
+using VisionAid.MobileApp.Services;
 
 namespace VisionAid.MobileApp
 {
@@ -22,6 +23,8 @@ namespace VisionAid.MobileApp
 #if DEBUG
     		builder.Logging.AddDebug();
 #endif
+
+            builder.Services.AddSingleton<AuthenticationService>();
 
             return builder.Build();
         }

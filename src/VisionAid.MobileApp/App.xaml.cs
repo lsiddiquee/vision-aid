@@ -1,8 +1,10 @@
-﻿namespace VisionAid.MobileApp
+﻿using VisionAid.MobileApp.Services;
+
+namespace VisionAid.MobileApp
 {
     public partial class App : Application
     {
-        public App()
+        public App(AuthenticationService authenticationService)
         {
             InitializeComponent();
 
