@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using VisionAid.Api.Models;
 using VisionAid.Api.Services;
@@ -8,9 +9,31 @@ namespace VisionAid.Api.Controllers
     [ApiController]
     public class ChatController(ChatService _chatService) : ControllerBase
     {
-        [HttpPost("Upload")]
-        public async Task<ActionResult<ChatResponse>> UploadImage(IFormFile file, CancellationToken cancellationToken)
+        [HttpPost("Chat")]
+        public async Task<ActionResult<ChatResponse>> Chat(
+            string message,
+            string? prompt = null,
+            CancellationToken cancellationToken = default)
         {
+            if (string.IsNullOrEmpty(message))
+            {
+                return BadRequest("The message cannot be null or empty.");
+            }
+
+            var stopwatch = Stopwatch.StartNew();
+            var response = await _chatService.GetResponse(message, prompt, cancellationToken);
+            stopwatch.Stop();
+
+            return Ok(new ChatResponse { Message = response, Duration = stopwatch.Elapsed });
+        }
+
+        [HttpPost("Upload")]
+        public async Task<ActionResult<ChatResponse>> UploadImage(
+            IFormFile file,
+            string? prompt = null,
+            CancellationToken cancellationToken = default)
+        {
+            Stopwatch stopwatch = Stopwatch.StartNew();
             ReadOnlyMemory<byte> readOnlyMemory = default;
             using (var memoryStream = new MemoryStream())
             {
@@ -19,22 +42,34 @@ namespace VisionAid.Api.Controllers
                 readOnlyMemory = new ReadOnlyMemory<byte>(fileBytes);
             }
             
-            var response = await _chatService.GetResponse(readOnlyMemory, file.ContentType, cancellationToken);
+            var response = await _chatService.GetResponse(readOnlyMemory, file.ContentType, prompt, cancellationToken);
 
-            return Ok(new ChatResponse { Message = response });
+            stopwatch.Stop();
+
+            return Ok(new ChatResponse { Message = response, Duration = stopwatch.Elapsed });
         }
 
-        [HttpPost("Chat")]
-        public async Task<ActionResult<ChatResponse>> Chat(string message, CancellationToken cancellationToken)
+        [HttpPost("Navigate")]
+        public async Task<ActionResult<ChatResponse>> Navigate(
+            IFormFile file,
+            string navigationInstructions,
+            string? prompt = null,
+            CancellationToken cancellationToken = default)
         {
-            if (string.IsNullOrEmpty(message))
+            Stopwatch stopwatch = Stopwatch.StartNew();
+            ReadOnlyMemory<byte> readOnlyMemory = default;
+            using (var memoryStream = new MemoryStream())
             {
-                return BadRequest("The message cannot be null or empty.");
+                await file.CopyToAsync(memoryStream);
+                byte[] fileBytes = memoryStream.ToArray();
+                readOnlyMemory = new ReadOnlyMemory<byte>(fileBytes);
             }
+            
+            var response = await _chatService.GetResponse(readOnlyMemory, file.ContentType, navigationInstructions, prompt, cancellationToken);
 
-            var response = await _chatService.GetResponse(message, cancellationToken);
+            stopwatch.Stop();
 
-            return Ok(new ChatResponse { Message = response });
+            return Ok(new ChatResponse { Message = response, Duration = stopwatch.Elapsed });
         }
     }
 }
