@@ -41,7 +41,7 @@ public class Program
                         TokenUrl = new Uri($"{builder.Configuration["AzureAd:Instance"]}{builder.Configuration["AzureAd:TenantId"]}/oauth2/v2.0/token"),
                         Scopes = new Dictionary<string, string>
                         {
-                            { "api://032004cb-0ab1-45fd-88d8-64f24f2d7889/access_as_user", "Access API as a user" }
+                            { builder.Configuration["AzureAd:Scope"]!, "Access API as a user" }
                         }
                     }
                 }
@@ -69,7 +69,7 @@ public class Program
         var app = builder.Build();
 
         // Configure the HTTP request pipeline.
-        if (app.Environment.IsDevelopment())
+        //if (app.Environment.IsDevelopment())
         {
             app.UseSwagger();
             app.UseSwaggerUI(c =>
