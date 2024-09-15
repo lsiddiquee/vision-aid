@@ -4,6 +4,11 @@ using Microsoft.Extensions.Options;
 using VisionAid.Api.Options;
 using VisionAid.Api.Services;
 using Azure.Identity;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.Identity.Web;
+using Microsoft.Extensions.Configuration;
+using Microsoft.OpenApi.Models;
+using VisionAid.Api.Filters;
 
 namespace VisionAid.Api;
 
@@ -20,12 +25,37 @@ public class Program
 
         builder.Services.AddControllers();
         builder.Services.AddEndpointsApiExplorer();
-        builder.Services.AddSwaggerGen();
+        builder.Services.AddSwaggerGen(c =>
+        {
+            c.SwaggerDoc("v1", new OpenApiInfo { Title = "VisionAid API", Version = "v1" });
 
+            // Define the OAuth2.0 scheme that's in use (i.e. Implicit Flow)
+            c.AddSecurityDefinition("oauth2", new OpenApiSecurityScheme
+            {
+                Type = SecuritySchemeType.OAuth2,
+                Flows = new OpenApiOAuthFlows
+                {
+                    AuthorizationCode = new OpenApiOAuthFlow
+                    {
+                        AuthorizationUrl = new Uri($"{builder.Configuration["AzureAd:Instance"]}{builder.Configuration["AzureAd:TenantId"]}/oauth2/v2.0/authorize"),
+                        TokenUrl = new Uri($"{builder.Configuration["AzureAd:Instance"]}{builder.Configuration["AzureAd:TenantId"]}/oauth2/v2.0/token"),
+                        Scopes = new Dictionary<string, string>
+                        {
+                            { "api://032004cb-0ab1-45fd-88d8-64f24f2d7889/access_as_user", "Access API as a user" }
+                        }
+                    }
+                }
+            });
+
+            c.OperationFilter<AuthorizeCheckOperationFilter>();
+        });
         builder.Services.AddOptions<AzureOpenAIOptions>()
             .Bind(builder.Configuration.GetSection(nameof(AzureOpenAIOptions)))
             .ValidateDataAnnotations()
             .ValidateOnStart();
+
+        builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            .AddMicrosoftIdentityWebApi(builder.Configuration.GetSection("AzureAd"));
 
         builder.Services.AddSingleton<IChatCompletionService>(sp =>
         {
@@ -42,13 +72,19 @@ public class Program
         if (app.Environment.IsDevelopment())
         {
             app.UseSwagger();
-            app.UseSwaggerUI();
+            app.UseSwaggerUI(c =>
+            {
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
+
+                c.OAuthClientId(builder.Configuration["AzureAd:ClientId"]);
+                c.OAuthUsePkce();
+            });
         }
 
         app.UseHttpsRedirection();
 
+        app.UseAuthentication();
         app.UseAuthorization();
-
 
         app.MapControllers();
 

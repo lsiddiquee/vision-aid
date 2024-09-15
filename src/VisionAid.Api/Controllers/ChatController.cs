@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using VisionAid.Api.Models;
 using VisionAid.Api.Services;
@@ -7,6 +8,7 @@ namespace VisionAid.Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class ChatController(ChatService _chatService) : ControllerBase
     {
         [HttpPost("Chat")]
