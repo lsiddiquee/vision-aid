@@ -27,6 +27,8 @@ public class Program
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen(c =>
         {
+            c.UseInlineDefinitionsForEnums();
+
             c.SwaggerDoc("v1", new OpenApiInfo { Title = "VisionAid API", Version = "v1" });
 
             // Define the OAuth2.0 scheme that's in use (i.e. Implicit Flow)
@@ -35,7 +37,7 @@ public class Program
                 Type = SecuritySchemeType.OAuth2,
                 Flows = new OpenApiOAuthFlows
                 {
-                    AuthorizationCode = new OpenApiOAuthFlow
+                    Implicit = new OpenApiOAuthFlow
                     {
                         AuthorizationUrl = new Uri($"{builder.Configuration["AzureAd:Instance"]}{builder.Configuration["AzureAd:TenantId"]}/oauth2/v2.0/authorize"),
                         TokenUrl = new Uri($"{builder.Configuration["AzureAd:Instance"]}{builder.Configuration["AzureAd:TenantId"]}/oauth2/v2.0/token"),
@@ -74,7 +76,7 @@ public class Program
             app.UseSwagger();
             app.UseSwaggerUI(c =>
             {
-                c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "VisionAid API V1");
 
                 c.OAuthClientId(builder.Configuration["AzureAd:ClientId"]);
                 c.OAuthUsePkce();
