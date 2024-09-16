@@ -4,20 +4,36 @@
              x:Class="VisionAid.MobileApp.MainPage"
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit">
 
-    <StackLayout Margin="20,35,20,25">
-        <Grid ColumnDefinitions="*,*,*" RowDefinitions="*,30,30">
-            <toolkit:CameraView 
-            Grid.ColumnSpan="3" 
-            Grid.Row="0" 
-            SelectedCamera="{Binding SelectedCamera}" />
-        </Grid>
+        <Grid ColumnDefinitions="*,*,*" RowDefinitions="*,30,30" Margin="5,5" Padding="5,5">
+        <toolkit:CameraView 
+                x:Name="MainCameraView" 
+                Grid.ColumnSpan="3" 
+                Grid.Row="0" 
+                SelectedCamera="{Binding SelectedCamera}"
+                MediaCaptured="MainCameraView_MediaCaptured" />
+
+        <Entry x:Name="EntryQuery"
+            Placeholder="Enter text"
+            Grid.Row="1"
+               Grid.ColumnSpan="3" />
+        
+        <Button
+            x:Name="PostImageBtn"
+            Text="PostImage" 
+            SemanticProperties.Hint="Posts image to LLM"
+            Clicked="PostImageBtn_Clicked"
+            HorizontalOptions="Fill"
+            Grid.Row="2"
+            Grid.Column="0" />
 
         <Button
-                x:Name="LoginBtn"
-                Text="Login" 
-                SemanticProperties.Hint="Logs in to Azure"
-                Clicked="LoginBtn_Clicked"
-                HorizontalOptions="Fill" />
-    </StackLayout>
+            x:Name="ChatBtn"
+            Text="Chat" 
+            SemanticProperties.Hint="Chats with LLM"
+            Clicked="ChatBtn_Clicked"
+            HorizontalOptions="Fill"
+            Grid.Row="2"
+            Grid.Column="2" />
+    </Grid>
 
 </ContentPage>

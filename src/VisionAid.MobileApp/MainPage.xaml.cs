@@ -1,4 +1,5 @@
-﻿using VisionAid.MobileApp.Services;
+﻿using CommunityToolkit.Maui.Views;
+using VisionAid.MobileApp.Services;
 
 namespace VisionAid.MobileApp
 {
@@ -13,9 +14,9 @@ namespace VisionAid.MobileApp
             _authenticationService = new AuthenticationService(); // TODO: DI
         }
 
-        private async void LoginBtn_Clicked(object sender, EventArgs e)
+        private async void ChatBtn_Clicked(object sender, EventArgs e)
         {
-            LoginBtn.IsEnabled = false;
+            ChatBtn.IsEnabled = false;
 
             await _authenticationService.SignInAsync();
 
@@ -23,12 +24,32 @@ namespace VisionAid.MobileApp
 
             using (ChatService chatService = new ChatService(_authenticationService))
             {
-                var response = await chatService.GetChatResponseAsync("Hello");
+                var response = await chatService.GetChatResponseAsync(EntryQuery.Text);
                 await DisplayAlert("Response", response, "OK");
             }
 
-            LoginBtn.IsEnabled = true;
+            ChatBtn.IsEnabled = true;
 
+        }
+
+        private async void MainCameraView_MediaCaptured(object sender, MediaCapturedEventArgs e)
+        {
+            using (ChatService chatService = new ChatService(_authenticationService))
+            {
+                var response = await chatService.GetImageResponseAsync(e.Media);
+                await DisplayAlert("Response", response, "OK");
+            }
+        }
+
+        private async void PostImageBtn_Clicked(object sender, EventArgs e)
+        {
+            var result = await MainCameraView.CaptureAsync();
+            using (ChatService chatService = new ChatService(_authenticationService))
+            {
+                var stream = await result!.OpenReadAsync(quality: 40);
+                var response = await chatService.GetImageResponseAsync(stream);
+                await DisplayAlert("Response", response, "OK");
+            }
         }
     }
 }

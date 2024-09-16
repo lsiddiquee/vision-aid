@@ -150,6 +150,7 @@ public partial class AuthenticationService
 
         // Store the user ID to make account retrieval easier
         _userIdentifier = result.Account.HomeAccountId.Identifier;
+        _isSignedIn = true;
         return result;
     }
 }

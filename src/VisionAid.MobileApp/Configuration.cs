@@ -3,8 +3,8 @@
 internal static class Configuration
 {
     public const string ApiUrl = "https://app-service-vision-aid.azurewebsites.net/";
-    public const string AzureAdTenantId = "16b3c013-d300-468d-ac64-7eda0820b6d3";
-    public const string AzureAdClientId = "032004cb-0ab1-45fd-88d8-64f24f2d7889";
+    public const string AzureAdTenantId = "14bea8dc-84c9-40e7-85b6-9983e122c43d";
+    public const string AzureAdClientId = "432b6202-439d-48a2-b714-2d2becc9af9c";
     public static readonly string AzureAdRedirectUri = $"msal{AzureAdClientId}://auth";
-    public const string VisionAidApiScope = "api://032004cb-0ab1-45fd-88d8-64f24f2d7889/access_as_user";
+    public static readonly string VisionAidApiScope = $"api://{AzureAdClientId}/access_as_user";
 }

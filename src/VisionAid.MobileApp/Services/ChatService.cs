@@ -1,4 +1,5 @@
-﻿using System.Net.Http.Headers;
+﻿using System.Net;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
 
 namespace VisionAid.MobileApp.Services
@@ -22,18 +23,31 @@ namespace VisionAid.MobileApp.Services
 
         public async Task<string> GetChatResponseAsync(string message)
         {
-            if (!_authenticationService.IsSignedIn)
-            {
-                throw new InvalidOperationException("User is not authenticated");
-            }
-
             await SetAuthenticationHeaderAsync();
-            var response = await _httpClient.PostAsync($"api/chat?message={Uri.EscapeDataString(message)}", null);
+            var response = await _httpClient.PostAsync($"api/Chat/Chat?message={Uri.EscapeDataString(message)}", null);
             response.EnsureSuccessStatusCode();
 
             var chatResponse = await response.Content.ReadFromJsonAsync<ChatResponse>() ?? throw new ApplicationException();
 
             return chatResponse.Message;
+        }
+
+        public async Task<string> GetImageResponseAsync(Stream imageStream)
+        {
+            await SetAuthenticationHeaderAsync();
+
+            using (var content = new MultipartFormDataContent())
+            {
+                var imageContent = new StreamContent(imageStream);
+                content.Add(imageContent, "file", "test.png");
+
+                var response = await _httpClient.PostAsync("api/Chat/Upload", content);
+                response.EnsureSuccessStatusCode();
+
+                var chatResponse = await response.Content.ReadFromJsonAsync<ChatResponse>() ?? throw new ApplicationException();
+
+                return chatResponse.Message;
+            }
         }
 
         public void Dispose()
