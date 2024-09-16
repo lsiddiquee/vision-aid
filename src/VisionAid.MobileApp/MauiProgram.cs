@@ -25,6 +25,7 @@ namespace VisionAid.MobileApp
 #endif
 
             builder.Services.AddSingleton<AuthenticationService>();
+            builder.Services.AddSingleton<ChatService>();
 
             return builder.Build();
         }

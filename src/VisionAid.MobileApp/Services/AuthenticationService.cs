@@ -23,18 +23,7 @@ public partial class AuthenticationService
         _pca = new Lazy<Task<IPublicClientApplication>>(InitializeMsalWithCache);
     }
 
-    /// <inheritdoc/>
-    /// <remarks>
-    /// Attempts to get a token silently from the cache. If this fails, the user needs to sign in.
-    /// </remarks>
-    public async Task<bool> IsAuthenticatedAsync()
-    {
-        var silentResult = await GetTokenSilentlyAsync();
-        IsSignedIn = silentResult is not null;
-        return IsSignedIn;
-    }
-
-    public async Task<bool> SignInAsync()
+    public async Task<AuthenticationResult> SignInAsync()
     {
         // First attempt to get a token silently
         var result = await GetTokenSilentlyAsync();
@@ -45,8 +34,7 @@ public partial class AuthenticationService
             result = await GetTokenInteractivelyAsync();
         }
 
-        IsSignedIn = result is not null;
-        return IsSignedIn;
+        return result;
     }
 
     public async Task SignOutAsync()
@@ -74,6 +62,7 @@ public partial class AuthenticationService
         // Initialize the PublicClientApplication
         var builder = PublicClientApplicationBuilder
             .Create(Configuration.AzureAdClientId)
+            .WithTenantId(Configuration.AzureAdTenantId)
             .WithRedirectUri(Configuration.AzureAdRedirectUri);
 
         builder = AddPlatformConfiguration(builder);
@@ -162,24 +151,5 @@ public partial class AuthenticationService
         // Store the user ID to make account retrieval easier
         _userIdentifier = result.Account.HomeAccountId.Identifier;
         return result;
-    }
-
-    public async Task AuthenticateRequestAsync(
-        RequestInformation request,
-        Dictionary<string, object> additionalAuthenticationContext = null,
-        CancellationToken cancellationToken = default)
-    {
-        if (request.URI.Host == "graph.microsoft.com")
-        {
-            // First try to get the token silently
-            var result = await GetTokenSilentlyAsync();
-            if (result == null)
-            {
-                // If silent acquisition fails, try interactive
-                result = await GetTokenInteractivelyAsync();
-            }
-
-            request.Headers.Add("Authorization", $"Bearer {result.AccessToken}");
-        }
     }
 }
