@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using Microsoft.Maui.Graphics.Platform;
+using System.IO;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 
@@ -38,15 +39,22 @@ namespace VisionAid.MobileApp.Services
 
             using (var content = new MultipartFormDataContent())
             {
-                var imageContent = new StreamContent(imageStream);
-                content.Add(imageContent, "file", "test.png");
+                var image = PlatformImage.FromStream(imageStream);
+                var newImage = image.Resize(image.Width / 4, image.Height / 4, ResizeMode.Stretch);
 
-                var response = await _httpClient.PostAsync("api/Chat/Upload", content);
-                response.EnsureSuccessStatusCode();
+                using (var newImageStream = newImage.AsStream())
+                {
+                    var imageContent = new StreamContent(newImageStream);
+                    imageContent.Headers.ContentType = MediaTypeHeaderValue.Parse("image/png");
+                    content.Add(imageContent, "file", $"VisionAid_{DateTime.Now:yy_MM_dd_HH_mm_ss}.png");
 
-                var chatResponse = await response.Content.ReadFromJsonAsync<ChatResponse>() ?? throw new ApplicationException();
+                    var response = await _httpClient.PostAsync("api/Chat/Upload", content);
+                    response.EnsureSuccessStatusCode();
 
-                return chatResponse.Message;
+                    var chatResponse = await response.Content.ReadFromJsonAsync<ChatResponse>() ?? throw new ApplicationException();
+
+                    return chatResponse.Message;
+                }
             }
         }
 
