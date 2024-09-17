@@ -9,7 +9,6 @@
         <toolkit:CameraView 
             x:Name="MainCameraView" 
             SelectedCamera="{Binding SelectedCamera}"
-            MediaCaptured="MainCameraView_MediaCaptured"
             HeightRequest="550" />
 
         <Entry x:Name="EntryQuery"
