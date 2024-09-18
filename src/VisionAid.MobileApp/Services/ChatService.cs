@@ -35,19 +35,18 @@ namespace VisionAid.MobileApp.Services
         {
             await SetAuthenticationHeaderAsync();
 
-            using (var content = new MultipartFormDataContent())
-            {
-                var imageContent = new StreamContent(imageStream);
-                imageContent.Headers.ContentType = MediaTypeHeaderValue.Parse("image/png");
-                content.Add(imageContent, "file", $"VisionAid_{DateTime.Now:yy_MM_dd_HH_mm_ss}.png");
+            using var content = new MultipartFormDataContent();
+            using var imageContent = new StreamContent(imageStream);
 
-                var response = await _httpClient.PostAsync("api/Chat/Upload", content);
-                response.EnsureSuccessStatusCode();
+            imageContent.Headers.ContentType = MediaTypeHeaderValue.Parse("image/png");
+            content.Add(imageContent, "file", $"VisionAid_{DateTime.Now:yy_MM_dd_HH_mm_ss}.png");
 
-                var chatResponse = await response.Content.ReadFromJsonAsync<ChatResponse>() ?? throw new ApplicationException();
+            var response = await _httpClient.PostAsync("api/Chat/Upload", content);
+            response.EnsureSuccessStatusCode();
 
-                return chatResponse.Message;
-            }
+            var chatResponse = await response.Content.ReadFromJsonAsync<ChatResponse>() ?? throw new ApplicationException();
+
+            return chatResponse.Message;
         }
 
         public void Dispose()

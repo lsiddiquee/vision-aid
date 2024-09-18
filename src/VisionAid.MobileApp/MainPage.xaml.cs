@@ -1,5 +1,4 @@
-﻿using System.Reflection.Metadata;
-using Microsoft.Maui.Graphics.Platform;
+﻿using System.Diagnostics;
 using VisionAid.MobileApp.Services;
 
 namespace VisionAid.MobileApp
@@ -7,8 +6,8 @@ namespace VisionAid.MobileApp
     public partial class MainPage : ContentPage
     {
         private Queue<Stream> _imageQueue = new Queue<Stream>();
-        private int _currentImageIndex = 0;
-        private System.Timers.Timer? _timer = null;
+        private System.Timers.Timer? _imageCaptureTimer = null;
+        private System.Timers.Timer? _imagePostTimer = null;
         private readonly AuthenticationService _authenticationService;
         private object _lock = new object();
 
@@ -17,6 +16,8 @@ namespace VisionAid.MobileApp
             InitializeComponent();
 
             _authenticationService = new AuthenticationService(); // TODO: DI
+
+            DeviceDisplay.Current.KeepScreenOn = true;
         }
 
         private async void ChatBtn_Clicked(object sender, EventArgs e)
@@ -48,49 +49,53 @@ namespace VisionAid.MobileApp
 
         private async void MainCameraView_MediaCaptured(object sender, CommunityToolkit.Maui.Views.MediaCapturedEventArgs e)
         {
-            using (ChatService chatService = new ChatService(_authenticationService))
+            using ChatService chatService = new ChatService(_authenticationService);
+            using (e.Media)
             {
-                await ProcessStream(chatService, e.Media);
+                AddNewImage(ResizeImage(e.Media));
             }
 
-            // SetButtonsIsEnabled(true);
+            await Task.CompletedTask;
         }
 
         private void StartRealTimeMonitoringBtn_Clicked(object sender, EventArgs e)
         {
-            SetButtonsIsEnabled(_timer != null);
+            SetButtonsIsEnabled(_imageCaptureTimer != null);
 
-            if (_timer == null)
+            if (_imageCaptureTimer != null && _imagePostTimer != null)
             {
-                StartRealTimeMonitoringBtn.Text = "Stop";
-                _timer = StartRealtimeDetection();
+                StartRealTimeMonitoringBtn.Text = "Start";
+                _imageCaptureTimer.Stop();
+                _imageCaptureTimer.Dispose();
+                _imageCaptureTimer = null;
+                _imagePostTimer.Stop();
+                _imagePostTimer.Dispose();
+                _imagePostTimer = null;
             }
             else
             {
-                StartRealTimeMonitoringBtn.Text = "Start";
-                _timer.Stop();
-                _timer.Dispose();
-                _timer = null;
+                StartRealTimeMonitoringBtn.Text = "Stop";
+                (_imageCaptureTimer, _imagePostTimer) = StartRealtimeDetection();
             }
         }
 
         private async Task ProcessStream(ChatService chatService, Stream imageStream)
         {
-            using (imageStream)
+            //var fileName = $"VisionAid_{DateTime.Now:yy_MM_dd_HH_mm_ss}.png";
+            //var fileSaverResult = await FileSaver.Default.SaveAsync(fileName, stream);
+
+            await _authenticationService.SignInAsync();
+
+            imageStream.Position = 0;
+            var stopwatch = Stopwatch.StartNew();
+            var response = await chatService.GetImageResponseAsync(imageStream);
+            stopwatch.Stop();
+
+            MainThread.BeginInvokeOnMainThread(() =>
             {
-                //var fileName = $"VisionAid_{DateTime.Now:yy_MM_dd_HH_mm_ss}.png";
-                //var fileSaverResult = await FileSaver.Default.SaveAsync(fileName, stream);
-
-                await _authenticationService.SignInAsync();
-
-                imageStream.Position = 0;
-                using (var newImageStream = ResizeImage(imageStream))
-                {
-                    var response = await chatService.GetImageResponseAsync(newImageStream);
-
-                    MainThread.BeginInvokeOnMainThread(() => LblResponse.Text = response);
-                }
-            }
+                LblResponse.Text = response;
+                LblOpenAIResponseTime.Text = $"Response Time: {stopwatch.ElapsedMilliseconds}ms"; 
+            });
         }
 
         private void SetButtonsIsEnabled(bool isEnabled)
@@ -98,31 +103,41 @@ namespace VisionAid.MobileApp
             MainThread.BeginInvokeOnMainThread(() => PostImageBtn.IsEnabled = ChatBtn.IsEnabled = isEnabled);
         }
 
-        private Stream ResizeImage(Stream imageStream, int maxWidth = 720)
+        private Stream ResizeImage(Stream imageStream, int maxWidth = Configuration.MaxWidth)
         {
-            var image = PlatformImage.FromStream(imageStream, ImageFormat.Png);
+            using SkiaSharp.SKBitmap image = SkiaSharp.SKBitmap.Decode(imageStream);
 
             if (image.Width > maxWidth)
             {
-                float newHeight = (image.Height / image.Width) * maxWidth;
-                var newImage = image.Resize(maxWidth, newHeight, ResizeMode.Fit);
+                float newHeight = ((float)image.Height / image.Width) * maxWidth;
+                var newImage = image.Resize(new SkiaSharp.SKImageInfo(maxWidth, (int)newHeight), SkiaSharp.SKFilterQuality.Medium);
 
-                return newImage.AsStream();
+                var newImageStream = new MemoryStream();
+                newImage.Encode(SkiaSharp.SKEncodedImageFormat.Png, 100).SaveTo(newImageStream);
+
+                return newImageStream;
             }
-            
-            imageStream.Position = 0;
-            return imageStream;
+
+            var originalImageStream = new MemoryStream();
+            image.Encode(SkiaSharp.SKEncodedImageFormat.Png, 100).SaveTo(originalImageStream);
+            return originalImageStream;
         }
 
-        private System.Timers.Timer StartRealtimeDetection()
+        private (System.Timers.Timer, System.Timers.Timer) StartRealtimeDetection()
         {
-            var timer = new System.Timers.Timer(new TimeSpan(0, 0, 5));
+            var captureTime = new System.Timers.Timer(Configuration.ImageCaptureIntervalInMilliseconds);
 
-            timer.Elapsed += async (sender, e) => await MainCameraView.CaptureImage(default);
-            timer.AutoReset = true;
-            timer.Start();
+            captureTime.Elapsed += async (sender, e) => await MainCameraView.CaptureImage(default);
+            captureTime.AutoReset = true;
+            captureTime.Start();
 
-            return timer;
+            var postTime = new System.Timers.Timer(Configuration.ImagePostIntervalInMilliseconds);
+
+            postTime.Elapsed += async (sender, e) => await PostImages();
+            postTime.AutoReset = true;
+            postTime.Start();
+
+            return (captureTime, postTime);
         }
 
         private void AddNewImage(Stream imageStream)
@@ -137,10 +152,14 @@ namespace VisionAid.MobileApp
                 
                 _imageQueue.Enqueue(imageStream);
             }
+
+            MainThread.BeginInvokeOnMainThread(() => LblBufferStatus.Text = $"Buffer: {_imageQueue.Count}");
         }
 
         private Stream[] GetImageStreams()
         {
+            MainThread.BeginInvokeOnMainThread(() => LblBufferStatus.Text = "Buffer: 0");
+
             lock (_lock)
             {
                 Stream[] images = new Stream[_imageQueue.Count];
@@ -151,6 +170,22 @@ namespace VisionAid.MobileApp
                 }
 
                 return images;
+            }
+        }
+
+        private async Task PostImages()
+        {
+            using ChatService chatService = new ChatService(_authenticationService);
+            var images = GetImageStreams();
+
+            if (images.Length > 0)
+            {
+                await ProcessStream(chatService, images[images.Length - 1]);
+            }
+
+            foreach (var image in images)
+            {
+                image.Dispose();
             }
         }
     }

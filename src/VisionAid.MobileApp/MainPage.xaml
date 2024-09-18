@@ -7,6 +7,9 @@
     <!--<Grid ColumnDefinitions="*,*,*" RowDefinitions="*,30,30" Margin="5,5" Padding="5,5">-->
     <ScrollView>
         <VerticalStackLayout>
+            <Label x:Name="LblBufferStatus" />
+            <Label x:Name="LblOpenAIResponseTime" />
+
             <toolkit:CameraView 
                 x:Name="MainCameraView" 
                 SelectedCamera="{Binding SelectedCamera}"
@@ -24,7 +27,8 @@
                     SemanticProperties.Hint="Posts image to LLM"
                     Clicked="PostImageBtn_Clicked"
                     WidthRequest="100"
-                    Margin="10,10" />
+                    Margin="10,10"
+                    IsVisible="False" />
 
                 <Button
                     x:Name="StartRealTimeMonitoringBtn"
