@@ -6,7 +6,6 @@ using VisionAid.Api.Services;
 using Azure.Identity;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Identity.Web;
-using Microsoft.Extensions.Configuration;
 using Microsoft.OpenApi.Models;
 using VisionAid.Api.Filters;
 using Azure.Maps.Routing;

@@ -20,9 +20,17 @@
             <HorizontalStackLayout HorizontalOptions="Center">
                 <Button
                     x:Name="PostImageBtn"
-                    Text="PostImage" 
+                    Text="Post Image" 
                     SemanticProperties.Hint="Posts image to LLM"
                     Clicked="PostImageBtn_Clicked"
+                    WidthRequest="100"
+                    Margin="10,10" />
+
+                <Button
+                    x:Name="StartRealTimeMonitoringBtn"
+                    Text="Start Realtime" 
+                    SemanticProperties.Hint="Starts realtime posting to LLM"
+                    Clicked="StartRealTimeMonitoringBtn_Clicked"
                     WidthRequest="100"
                     Margin="10,10" />
 

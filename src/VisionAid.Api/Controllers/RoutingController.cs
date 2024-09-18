@@ -1,8 +1,6 @@
-using System.Diagnostics;
 using Azure.Maps.Routing.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using VisionAid.Api.Models;
 using VisionAid.Api.Services;
 
 namespace VisionAid.Api.Controllers

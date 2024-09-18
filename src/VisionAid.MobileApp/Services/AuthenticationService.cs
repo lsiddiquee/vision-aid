@@ -1,5 +1,4 @@
 ﻿using Microsoft.Identity.Client;
-using Microsoft.Kiota.Abstractions;
 
 namespace VisionAid.MobileApp.Services;
 
