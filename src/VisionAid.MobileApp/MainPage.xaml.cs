@@ -94,7 +94,25 @@ namespace VisionAid.MobileApp
             MainThread.BeginInvokeOnMainThread(() =>
             {
                 LblResponse.Text = response;
-                LblOpenAIResponseTime.Text = $"Response Time: {stopwatch.ElapsedMilliseconds}ms"; 
+                LblOpenAIResponseTime.Text = $"Response Time: {stopwatch.ElapsedMilliseconds}ms";
+            });
+        }
+
+        private async Task ProcessStreams(ChatService chatService, Stream[] imageStreams)
+        {
+            //var fileName = $"VisionAid_{DateTime.Now:yy_MM_dd_HH_mm_ss}.png";
+            //var fileSaverResult = await FileSaver.Default.SaveAsync(fileName, stream);
+
+            await _authenticationService.SignInAsync();
+
+            var stopwatch = Stopwatch.StartNew();
+            var response = await chatService.GetImageResponseForMultiStreamAsync(imageStreams);
+            stopwatch.Stop();
+
+            MainThread.BeginInvokeOnMainThread(() =>
+            {
+                LblResponse.Text = response;
+                LblOpenAIResponseTime.Text = $"Response Time: {stopwatch.ElapsedMilliseconds}ms";
             });
         }
 
@@ -180,7 +198,7 @@ namespace VisionAid.MobileApp
 
             if (images.Length > 0)
             {
-                await ProcessStream(chatService, images[images.Length - 1]);
+                await ProcessStreams(chatService, images);
             }
 
             foreach (var image in images)

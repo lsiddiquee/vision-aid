@@ -1,4 +1,5 @@
-﻿using System.Net.Http.Headers;
+﻿using Android.Service.Autofill;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
 
 namespace VisionAid.MobileApp.Services
@@ -47,6 +48,40 @@ namespace VisionAid.MobileApp.Services
             var chatResponse = await response.Content.ReadFromJsonAsync<ChatResponse>() ?? throw new ApplicationException();
 
             return chatResponse.Message;
+        }
+
+        public async Task<string> GetImageResponseForMultiStreamAsync(Stream[] imageStreams)
+        {
+            await SetAuthenticationHeaderAsync();
+
+            using var content = new MultipartFormDataContent();
+
+            foreach (var imageStream in imageStreams)
+            {
+                var imageContent = new StreamContent(imageStream);
+                imageContent.Headers.ContentDisposition = new ContentDispositionHeaderValue("form-data")
+                {
+                    Name = "\"files\"",
+                    FileName = $"\"VisionAid_{Guid.NewGuid()}.png\""
+                }; // the extra quotes are key here
+
+                imageContent.Headers.ContentType = MediaTypeHeaderValue.Parse("image/png");
+                content.Add(imageContent);
+            }
+
+            try
+            {
+                var response = await _httpClient.PostAsync("api/Chat/Navigate?navigationInstructions=go%20forward", content);
+                response.EnsureSuccessStatusCode();
+
+                var chatResponse = await response.Content.ReadFromJsonAsync<ChatResponse>() ?? throw new ApplicationException();
+
+                return chatResponse.Message;
+            }
+            catch (Exception ex)
+            {
+                return ex.Message;
+            }
         }
 
         public void Dispose()
