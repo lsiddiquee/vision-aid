@@ -17,6 +17,7 @@ public class Program
     public static void Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
+        builder.Services.AddCors();
 
         builder.Configuration.AddAzureKeyVault(
             new Uri($"https://{builder.Configuration["KeyVaultName"]}.vault.azure.net/"),
@@ -52,9 +53,9 @@ public class Program
             c.OperationFilter<AuthorizeCheckOperationFilter>();
         });
         builder.Services.AddOptions<AzureOpenAIOptions>()
-            .Bind(builder.Configuration.GetSection(nameof(AzureOpenAIOptions)))
-            .ValidateDataAnnotations()
-            .ValidateOnStart();
+             .Bind(builder.Configuration.GetSection(nameof(AzureOpenAIOptions)))
+             .ValidateDataAnnotations()
+             .ValidateOnStart();
 
         builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddMicrosoftIdentityWebApi(builder.Configuration.GetSection("AzureAd"));
@@ -87,6 +88,9 @@ public class Program
 
         app.UseAuthentication();
         app.UseAuthorization();
+
+        // disable CORS
+        app.UseCors(builder => builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
 
         app.MapControllers();
 
