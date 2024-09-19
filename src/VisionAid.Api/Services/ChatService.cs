@@ -41,7 +41,7 @@ public class ChatService(IChatCompletionService _chatCompletionService)
     string? prompt = null,
     CancellationToken cancellationToken = default)
     {
-        var systemPrompt = prompt ?? Prompts.GetImageProcessingPrompt(4);
+        var systemPrompt = prompt ?? Prompts.GetImageProcessingPrompt(5);
         var chatHistory = new ChatHistory($"{systemPrompt}\nNavigation Instructions:{navigationInstructions}");
 
         var imageContentItems = new ChatMessageContentItemCollection();
