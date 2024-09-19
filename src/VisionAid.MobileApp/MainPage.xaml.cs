@@ -109,10 +109,11 @@ namespace VisionAid.MobileApp
             var response = await chatService.GetImageResponseForMultiStreamAsync(imageStreams);
             stopwatch.Stop();
 
-            MainThread.BeginInvokeOnMainThread(() =>
+            MainThread.BeginInvokeOnMainThread(async () =>
             {
                 LblResponse.Text = response;
                 LblOpenAIResponseTime.Text = $"Response Time: {stopwatch.ElapsedMilliseconds}ms";
+                await TextToSpeech.Default.SpeakAsync(response);
             });
         }
 
@@ -193,17 +194,26 @@ namespace VisionAid.MobileApp
 
         private async Task PostImages()
         {
-            using ChatService chatService = new ChatService(_authenticationService);
-            var images = GetImageStreams();
-
-            if (images.Length > 0)
+            try
             {
-                await ProcessStreams(chatService, images);
+                _imagePostTimer?.Stop();
+
+                using ChatService chatService = new ChatService(_authenticationService);
+                var images = GetImageStreams();
+
+                if (images.Length > 0)
+                {
+                    await ProcessStreams(chatService, images);
+                }
+
+                foreach (var image in images)
+                {
+                    image.Dispose();
+                }
             }
-
-            foreach (var image in images)
+            finally
             {
-                image.Dispose();
+                _imagePostTimer?.Start();
             }
         }
     }

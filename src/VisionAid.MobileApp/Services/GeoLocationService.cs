@@ -2,10 +2,10 @@
 
 internal class GeoLocationService
 {
-    private CancellationTokenSource _cancelTokenSource;
+    private CancellationTokenSource? _cancelTokenSource = null;
     private bool _isCheckingLocation;
 
-    public async Task<Location> GetCurrentLocation()
+    public async Task<Location?> GetCurrentLocation()
     {
         try
         {
@@ -26,6 +26,6 @@ internal class GeoLocationService
     public void CancelRequest()
     {
         if (_isCheckingLocation && _cancelTokenSource != null && _cancelTokenSource.IsCancellationRequested == false)
-            _cancelTokenSource.Cancel();
+            _cancelTokenSource?.Cancel();
     }
 }

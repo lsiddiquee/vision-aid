@@ -1,5 +1,4 @@
-﻿using Android.Service.Autofill;
-using System.Net.Http.Headers;
+﻿using System.Net.Http.Headers;
 using System.Net.Http.Json;
 
 namespace VisionAid.MobileApp.Services
@@ -56,13 +55,15 @@ namespace VisionAid.MobileApp.Services
 
             using var content = new MultipartFormDataContent();
 
+            int i = 0;
             foreach (var imageStream in imageStreams)
             {
+                imageStream.Position = 0;
                 var imageContent = new StreamContent(imageStream);
                 imageContent.Headers.ContentDisposition = new ContentDispositionHeaderValue("form-data")
                 {
                     Name = "\"files\"",
-                    FileName = $"\"VisionAid_{Guid.NewGuid()}.png\""
+                    FileName = $"\"VisionAid_{i++}.png\""
                 }; // the extra quotes are key here
 
                 imageContent.Headers.ContentType = MediaTypeHeaderValue.Parse("image/png");
@@ -71,7 +72,12 @@ namespace VisionAid.MobileApp.Services
 
             try
             {
-                var response = await _httpClient.PostAsync("api/Chat/Navigate?navigationInstructions=go%20forward", content);
+                var response = await _httpClient.PostAsync("api/Chat/Navigate?navigationInstructions=test", content);
+                if (response.StatusCode == System.Net.HttpStatusCode.InternalServerError)
+                {
+                    var responseStr = await response.Content.ReadAsStringAsync();
+                    return responseStr;
+                }
                 response.EnsureSuccessStatusCode();
 
                 var chatResponse = await response.Content.ReadFromJsonAsync<ChatResponse>() ?? throw new ApplicationException();
