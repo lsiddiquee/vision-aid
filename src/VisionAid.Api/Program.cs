@@ -6,9 +6,10 @@ using VisionAid.Api.Services;
 using Azure.Identity;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Identity.Web;
-using Microsoft.Extensions.Configuration;
 using Microsoft.OpenApi.Models;
 using VisionAid.Api.Filters;
+using Azure.Maps.Routing;
+using Azure.Maps.Search;
 
 namespace VisionAid.Api;
 
@@ -56,6 +57,8 @@ public class Program
             .ValidateDataAnnotations()
             .ValidateOnStart();
 
+
+
         builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddMicrosoftIdentityWebApi(builder.Configuration.GetSection("AzureAd"));
 
@@ -66,8 +69,27 @@ public class Program
             return new AzureOpenAIChatCompletionService(options.ChatDeploymentName, options.Endpoint, options.ApiKey);
         });
 
+        // Register the routing service
+        builder.Services.AddOptions<AzureMapsOptions>()
+        .Bind(builder.Configuration.GetSection(nameof(AzureMapsOptions)))
+        .ValidateDataAnnotations()
+        .ValidateOnStart();
+
+        builder.Services.AddSingleton(sp =>
+        {
+            AzureMapsOptions options = sp.GetRequiredService<IOptions<AzureMapsOptions>>().Value;
+            return new MapsRoutingClient(new Azure.AzureKeyCredential(options.SubscriptionKey));
+        });
+
+        builder.Services.AddSingleton(sp =>
+        {
+            AzureMapsOptions options = sp.GetRequiredService<IOptions<AzureMapsOptions>>().Value;
+            return new MapsSearchClient(new Azure.AzureKeyCredential(options.SubscriptionKey));
+        });
+
         builder.Services.AddTransient<ChatService>();
-        
+        builder.Services.AddTransient<RoutingService>();
+
         var app = builder.Build();
 
         // Configure the HTTP request pipeline.

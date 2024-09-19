@@ -53,25 +53,31 @@ namespace VisionAid.Api.Controllers
 
         [HttpPost("Navigate")]
         public async Task<ActionResult<ChatResponse>> Navigate(
-            IFormFile file,
+            IEnumerable<IFormFile> files,
             string navigationInstructions,
             string? prompt = null,
             CancellationToken cancellationToken = default)
         {
             Stopwatch stopwatch = Stopwatch.StartNew();
-            ReadOnlyMemory<byte> readOnlyMemory = default;
-            using (var memoryStream = new MemoryStream())
+            var imageList = new List<(ReadOnlyMemory<byte> data, string? mimeType)>();
+
+            foreach (var file in files)
             {
-                await file.CopyToAsync(memoryStream);
-                byte[] fileBytes = memoryStream.ToArray();
-                readOnlyMemory = new ReadOnlyMemory<byte>(fileBytes);
+                using (var memoryStream = new MemoryStream())
+                {
+                    await file.CopyToAsync(memoryStream);
+                    byte[] fileBytes = memoryStream.ToArray();
+                    ReadOnlyMemory<byte> readOnlyMemory = new ReadOnlyMemory<byte>(fileBytes);
+                    imageList.Add((readOnlyMemory, file.ContentType));
+                }
             }
-            
-            var response = await _chatService.GetResponse(readOnlyMemory, file.ContentType, navigationInstructions, prompt, cancellationToken);
+
+            var response = await _chatService.GetResponse(imageList, navigationInstructions, prompt, cancellationToken);
 
             stopwatch.Stop();
 
             return Ok(new ChatResponse { Message = response, Duration = stopwatch.Elapsed });
         }
+
     }
 }

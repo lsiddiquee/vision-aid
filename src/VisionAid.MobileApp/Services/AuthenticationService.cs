@@ -1,5 +1,4 @@
 ﻿using Microsoft.Identity.Client;
-using Microsoft.Kiota.Abstractions;
 
 namespace VisionAid.MobileApp.Services;
 
@@ -90,7 +89,7 @@ public partial class AuthenticationService
     /// <summary>
     /// Get the user account from the MSAL cache.
     /// </summary>
-    private async Task<IAccount> GetUserAccountAsync()
+    private async Task<IAccount?> GetUserAccountAsync()
     {
         try
         {
@@ -120,7 +119,7 @@ public partial class AuthenticationService
     /// <summary>
     /// Attempt to acquire a token silently (no prompts).
     /// </summary>
-    private async Task<AuthenticationResult> GetTokenSilentlyAsync()
+    private async Task<AuthenticationResult?> GetTokenSilentlyAsync()
     {
         try
         {
