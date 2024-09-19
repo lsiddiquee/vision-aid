@@ -7,8 +7,12 @@
     <!--<Grid ColumnDefinitions="*,*,*" RowDefinitions="*,30,30" Margin="5,5" Padding="5,5">-->
     <ScrollView>
         <VerticalStackLayout>
-            <Label x:Name="LblBufferStatus" />
-            <Label x:Name="LblOpenAIResponseTime" />
+            <Grid ColumnDefinitions="*,*" RowDefinitions="30,30">
+                <Label Grid.Row="0" Grid.Column="0" x:Name="LblBufferStatus" />
+                <Label Grid.Row="1" Grid.Column="0" x:Name="LblOpenAIResponseTime" />
+                <Label Grid.Row="0" Grid.Column="1" x:Name="LblCompassHeading" />
+                <!--<Label Grid.Row="1" Grid.Column="0" x:Name="LblOpenAIResponseTime" />-->
+            </Grid>
 
             <toolkit:CameraView 
                 x:Name="MainCameraView" 

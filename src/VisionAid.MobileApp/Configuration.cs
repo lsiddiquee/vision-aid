@@ -8,7 +8,7 @@ internal static class Configuration
     public static readonly string AzureAdRedirectUri = $"msal{AzureAdClientId}://auth";
     public static readonly string VisionAidApiScope = $"api://{AzureAdClientId}/access_as_user";
     public const int Image_Buffer_Size = 5;
-    public const int MaxWidth = 500;
+    public const int MaxWidth = 400;
     public const int ImageCaptureIntervalInMilliseconds = 1000;
     public const int ImagePostIntervalInMilliseconds = 5000;
 }

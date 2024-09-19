@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using CommunityToolkit.Maui.Storage;
+using System.Diagnostics;
 using VisionAid.MobileApp.Services;
 
 namespace VisionAid.MobileApp
@@ -9,6 +10,7 @@ namespace VisionAid.MobileApp
         private System.Timers.Timer? _imageCaptureTimer = null;
         private System.Timers.Timer? _imagePostTimer = null;
         private readonly AuthenticationService _authenticationService;
+        private ImageService _imageService;
         private object _lock = new object();
 
         public MainPage()
@@ -16,8 +18,12 @@ namespace VisionAid.MobileApp
             InitializeComponent();
 
             _authenticationService = new AuthenticationService(); // TODO: DI
+            _imageService = new ImageService();
 
             DeviceDisplay.Current.KeepScreenOn = true;
+
+            Compass.Default.ReadingChanged += (object sender, CompassChangedEventArgs e) => LblCompassHeading.Text = e.Reading.ToString();
+            Compass.Default.Start(SensorSpeed.Default);
         }
 
         private async void ChatBtn_Clicked(object sender, EventArgs e)
@@ -52,10 +58,22 @@ namespace VisionAid.MobileApp
             using ChatService chatService = new ChatService(_authenticationService);
             using (e.Media)
             {
-                AddNewImage(ResizeImage(e.Media));
+                AddNewImage(_imageService.ResizeAndDrawZones(e.Media));
             }
 
             await Task.CompletedTask;
+
+            //using (e.Media)
+            //{
+            //    e.Media.Position = 0;
+            //    using var resizedAndDrawnImageStream = _imageService.ResizeaAndDrawZones(e.Media);
+            //    var fileName = $"VisionAid_ResizedAndDrawn_{DateTime.Now:yy_MM_dd_HH_mm_ss}.png";
+            //    await FileSaver.Default.SaveAsync(fileName, resizedAndDrawnImageStream);
+            //}
+
+            //SetButtonsIsEnabled(true);
+
+            //await Task.CompletedTask;
         }
 
         private void StartRealTimeMonitoringBtn_Clicked(object sender, EventArgs e)
@@ -120,26 +138,6 @@ namespace VisionAid.MobileApp
         private void SetButtonsIsEnabled(bool isEnabled)
         {
             MainThread.BeginInvokeOnMainThread(() => PostImageBtn.IsEnabled = ChatBtn.IsEnabled = isEnabled);
-        }
-
-        private Stream ResizeImage(Stream imageStream, int maxWidth = Configuration.MaxWidth)
-        {
-            using SkiaSharp.SKBitmap image = SkiaSharp.SKBitmap.Decode(imageStream);
-
-            if (image.Width > maxWidth)
-            {
-                float newHeight = ((float)image.Height / image.Width) * maxWidth;
-                var newImage = image.Resize(new SkiaSharp.SKImageInfo(maxWidth, (int)newHeight), SkiaSharp.SKFilterQuality.Medium);
-
-                var newImageStream = new MemoryStream();
-                newImage.Encode(SkiaSharp.SKEncodedImageFormat.Png, 100).SaveTo(newImageStream);
-
-                return newImageStream;
-            }
-
-            var originalImageStream = new MemoryStream();
-            image.Encode(SkiaSharp.SKEncodedImageFormat.Png, 100).SaveTo(originalImageStream);
-            return originalImageStream;
         }
 
         private (System.Timers.Timer, System.Timers.Timer) StartRealtimeDetection()
