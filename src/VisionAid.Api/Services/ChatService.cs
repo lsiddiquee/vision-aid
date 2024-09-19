@@ -36,19 +36,27 @@ public class ChatService(IChatCompletionService _chatCompletionService)
     }
 
     public async Task<string> GetResponse(
-        ReadOnlyMemory<byte> data,
-        string? mimeType,
-        string navigationInstructions,
-        string? prompt = null,
-        CancellationToken cancellationToken = default)
+    IEnumerable<(ReadOnlyMemory<byte> data, string? mimeType)> images,
+    string lastInstruction,
+    string navigationInstructions,
+    string? prompt = null,
+    CancellationToken cancellationToken = default)
     {
-        var systemPrompt = prompt ?? Prompts.GetImageProcessingPrompt(3);
+        var systemPrompt = prompt ?? Prompts.GetImageProcessingPrompt(5);
         var chatHistory = new ChatHistory($"{systemPrompt}\nNavigation Instructions:{navigationInstructions}");
 
-        chatHistory.AddUserMessage(new ChatMessageContentItemCollection
+        if (!string.IsNullOrWhiteSpace(lastInstruction))
         {
-            new ImageContent(data, mimeType)
-        });
+            chatHistory.AddAssistantMessage(lastInstruction);
+        }
+
+        var imageContentItems = new ChatMessageContentItemCollection();
+        foreach (var (data, mimeType) in images)
+        {
+            imageContentItems.Add(new ImageContent(data, mimeType));
+        }
+
+        chatHistory.AddUserMessage(imageContentItems);
 
         var response = await _chatCompletionService.GetChatMessageContentAsync(chatHistory, cancellationToken: cancellationToken);
 

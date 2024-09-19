@@ -7,6 +7,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VisionAid.MobileApp", "Visi
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VisionAid.Api", "VisionAid.Api\VisionAid.Api.csproj", "{821EBBEF-30D5-466A-9E38-D499254721EB}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VisionAid.Image", "VisionAid.Image\VisionAid.Image.csproj", "{4C274606-2ABE-42DA-991E-B6D1EF1D0C60}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -23,6 +25,10 @@ Global
 		{821EBBEF-30D5-466A-9E38-D499254721EB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{821EBBEF-30D5-466A-9E38-D499254721EB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{821EBBEF-30D5-466A-9E38-D499254721EB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4C274606-2ABE-42DA-991E-B6D1EF1D0C60}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4C274606-2ABE-42DA-991E-B6D1EF1D0C60}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4C274606-2ABE-42DA-991E-B6D1EF1D0C60}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4C274606-2ABE-42DA-991E-B6D1EF1D0C60}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

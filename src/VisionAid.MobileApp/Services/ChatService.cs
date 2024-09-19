@@ -36,17 +36,58 @@ namespace VisionAid.MobileApp.Services
         {
             await SetAuthenticationHeaderAsync();
 
-            using (var content = new MultipartFormDataContent())
-            {
-                var imageContent = new StreamContent(imageStream);
-                content.Add(imageContent, "file", "test.png");
+            using var content = new MultipartFormDataContent();
+            using var imageContent = new StreamContent(imageStream);
 
-                var response = await _httpClient.PostAsync("api/Chat/Upload", content);
+            imageContent.Headers.ContentType = MediaTypeHeaderValue.Parse("image/png");
+            content.Add(imageContent, "file", $"VisionAid_{DateTime.Now:yy_MM_dd_HH_mm_ss}.png");
+
+            var response = await _httpClient.PostAsync("api/Chat/Upload", content);
+            response.EnsureSuccessStatusCode();
+
+            var chatResponse = await response.Content.ReadFromJsonAsync<ChatResponse>() ?? throw new ApplicationException();
+
+            return chatResponse.Message;
+        }
+
+        public async Task<string> GetImageResponseForMultiStreamAsync(Stream[] imageStreams, string lastInstruction)
+        {
+            await SetAuthenticationHeaderAsync();
+
+            using var content = new MultipartFormDataContent();
+
+            int i = 0;
+            foreach (var imageStream in imageStreams)
+            {
+                imageStream.Position = 0;
+                var imageContent = new StreamContent(imageStream);
+                imageContent.Headers.ContentDisposition = new ContentDispositionHeaderValue("form-data")
+                {
+                    Name = "\"files\"",
+                    FileName = $"\"VisionAid_{i++}.png\""
+                };
+
+                imageContent.Headers.ContentType = MediaTypeHeaderValue.Parse("image/png");
+                content.Add(imageContent);
+            }
+
+            try
+            {
+                var response = await _httpClient.PostAsync($"api/Chat/Navigate?navigationInstructions=test&lastInstruction={WebUtility.UrlEncode(lastInstruction)}", content);
+                if (response.StatusCode == System.Net.HttpStatusCode.InternalServerError)
+                {
+                    var responseStr = await response.Content.ReadAsStringAsync();
+                    return responseStr;
+                }
                 response.EnsureSuccessStatusCode();
 
                 var chatResponse = await response.Content.ReadFromJsonAsync<ChatResponse>() ?? throw new ApplicationException();
 
                 return chatResponse.Message;
+            }
+            catch (Exception ex)
+            {
+                return ex.Message;
             }
         }
 
