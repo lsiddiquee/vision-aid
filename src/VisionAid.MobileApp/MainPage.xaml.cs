@@ -1,5 +1,4 @@
-﻿using CommunityToolkit.Maui.Storage;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using VisionAid.MobileApp.Services;
 
 namespace VisionAid.MobileApp
@@ -12,6 +11,8 @@ namespace VisionAid.MobileApp
         private readonly AuthenticationService _authenticationService;
         private ImageService _imageService;
         private object _lock = new object();
+
+        private string _lastResponse = "None";
 
         public MainPage()
         {
@@ -80,6 +81,12 @@ namespace VisionAid.MobileApp
         {
             SetButtonsIsEnabled(_imageCaptureTimer != null);
 
+            foreach (var image in GetImageStreams())
+            {
+                image.Dispose();
+            }
+            _lastResponse = "None";
+
             if (_imageCaptureTimer != null && _imagePostTimer != null)
             {
                 StartRealTimeMonitoringBtn.Text = "Start";
@@ -124,8 +131,10 @@ namespace VisionAid.MobileApp
             await _authenticationService.SignInAsync();
 
             var stopwatch = Stopwatch.StartNew();
-            var response = await chatService.GetImageResponseForMultiStreamAsync(imageStreams);
+            var response = await chatService.GetImageResponseForMultiStreamAsync(imageStreams, _lastResponse);
             stopwatch.Stop();
+
+            _lastResponse = response;
 
             MainThread.BeginInvokeOnMainThread(async () =>
             {

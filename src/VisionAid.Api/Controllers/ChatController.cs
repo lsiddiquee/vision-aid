@@ -54,6 +54,7 @@ namespace VisionAid.Api.Controllers
         [HttpPost("Navigate")]
         public async Task<ActionResult<ChatResponse>> Navigate(
             IEnumerable<IFormFile> files,
+            string lastInstruction,
             string navigationInstructions,
             string? prompt = null,
             CancellationToken cancellationToken = default)
@@ -72,7 +73,7 @@ namespace VisionAid.Api.Controllers
                 }
             }
 
-            var response = await _chatService.GetResponse(imageList, navigationInstructions, prompt, cancellationToken);
+            var response = await _chatService.GetResponse(imageList, lastInstruction, navigationInstructions, prompt, cancellationToken);
 
             stopwatch.Stop();
 

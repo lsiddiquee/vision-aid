@@ -37,12 +37,18 @@ public class ChatService(IChatCompletionService _chatCompletionService)
 
     public async Task<string> GetResponse(
     IEnumerable<(ReadOnlyMemory<byte> data, string? mimeType)> images,
+    string lastInstruction,
     string navigationInstructions,
     string? prompt = null,
     CancellationToken cancellationToken = default)
     {
         var systemPrompt = prompt ?? Prompts.GetImageProcessingPrompt(5);
         var chatHistory = new ChatHistory($"{systemPrompt}\nNavigation Instructions:{navigationInstructions}");
+
+        if (!string.IsNullOrWhiteSpace(lastInstruction))
+        {
+            chatHistory.AddAssistantMessage(lastInstruction);
+        }
 
         var imageContentItems = new ChatMessageContentItemCollection();
         foreach (var (data, mimeType) in images)

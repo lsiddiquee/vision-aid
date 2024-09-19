@@ -1,4 +1,5 @@
-﻿using System.Net.Http.Headers;
+﻿using System.Net;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
 
 namespace VisionAid.MobileApp.Services
@@ -49,7 +50,7 @@ namespace VisionAid.MobileApp.Services
             return chatResponse.Message;
         }
 
-        public async Task<string> GetImageResponseForMultiStreamAsync(Stream[] imageStreams)
+        public async Task<string> GetImageResponseForMultiStreamAsync(Stream[] imageStreams, string lastInstruction)
         {
             await SetAuthenticationHeaderAsync();
 
@@ -64,7 +65,7 @@ namespace VisionAid.MobileApp.Services
                 {
                     Name = "\"files\"",
                     FileName = $"\"VisionAid_{i++}.png\""
-                }; // the extra quotes are key here
+                };
 
                 imageContent.Headers.ContentType = MediaTypeHeaderValue.Parse("image/png");
                 content.Add(imageContent);
@@ -72,7 +73,7 @@ namespace VisionAid.MobileApp.Services
 
             try
             {
-                var response = await _httpClient.PostAsync("api/Chat/Navigate?navigationInstructions=test", content);
+                var response = await _httpClient.PostAsync($"api/Chat/Navigate?navigationInstructions=test&lastInstruction={WebUtility.UrlEncode(lastInstruction)}", content);
                 if (response.StatusCode == System.Net.HttpStatusCode.InternalServerError)
                 {
                     var responseStr = await response.Content.ReadAsStringAsync();
