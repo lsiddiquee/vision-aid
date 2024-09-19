@@ -1,13 +1,4 @@
-﻿using System;
-using System.Drawing;
-using Emgu.CV;
-using Emgu.CV.Structure;
-using Emgu.CV.CvEnum;
-using System.IO;
-
-
-
-// Define the paths for the input and output images
+﻿// Define the paths for the input and output images
 string inputImagePath = Path.Combine("example", "example.jpg");
 string outputImagePath = Path.Combine("example", "out.jpg");
 
